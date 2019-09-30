@@ -12,7 +12,13 @@ library(readxl)
 library(shinycssloaders)
 library(sf)
 library(DT)
+library(readr)
+library(tidyr)
 ##################################################################
+#wide_to_long<-NJ_area_daily_max%>%
+#gather(Date,AQI_value,7:252)%>%
+ # dplyr::filter(!State == "NA")
+
 ### Read in Sites Data to plot sites on leaflet map ###
 sites<-read_xlsx("Site_Locations.xlsx",col_names = T)%>%
       dplyr::distinct()
@@ -115,17 +121,20 @@ body<- dashboardBody(
     tabItem("nj",
             selectInput("nj_select","Please Select Summary Table:",
                         choices = c("Daily Max","8 Hour Design Values","Highest Levels")),
-            DT::dataTableOutput("dailytable")%>%withSpinner(type = 1,color = "green")),
+            DT::dataTableOutput("dailytable")%>%withSpinner(type = 1,color = "green"),
+            downloadButton('download_nj','Download Data')),
     
     tabItem("ny",
             selectInput("ny_select","Please Select Summary Table:",
                         choices = c("Daily Max","8 Hour Design Values","Highest Levels")),
-            DT::dataTableOutput("dailytable2")%>%withSpinner(type = 1,color = "green")),
+            DT::dataTableOutput("dailytable2")%>%withSpinner(type = 1,color = "green"),
+            downloadButton('download_ny','Download Data')),
    
     tabItem("pa",
             selectInput("pa_select","Please Select Summary Table:",
                         choices = c("Daily Max","8 Hour Design Values","Highest Levels")),
-            DT::dataTableOutput("dailytable3")%>%withSpinner(type = 1,color = "green"))))
+            DT::dataTableOutput("dailytable3")%>%withSpinner(type = 1,color = "green"),
+            downloadButton('download_pa','Download Data'))))
 ##################################################################
 ### Create ui ###
 ui<-dashboardPage(skin = "green",
@@ -136,6 +145,34 @@ ui<-dashboardPage(skin = "green",
 ##################################################################
 ### Define server for app ###
 server <- function(input, output) {
+
+### Allow users to download data for NJ daily max ###
+  output$download_nj<-downloadHandler(
+    filename = function(){
+      paste("dataset-",Sys.Date(),".csv",sep="")
+    },
+    content = function(file){
+      write_csv(NJ_area_daily_max,file)
+    })
+###############################################################################    
+### Allow users to download data for NJ daily max ###
+  output$download_ny<-downloadHandler(
+    filename = function(){
+      paste("dataset-",Sys.Date(),".csv",sep="")
+    },
+    content = function(file){
+      write_csv(NY_area_daily_max,file)
+    })
+###############################################################################
+### Allow users to download data for NJ daily max ###
+  output$download_pa<-downloadHandler(
+    filename = function(){
+      paste("dataset-",Sys.Date(),".csv",sep="")
+    },
+    content = function(file){
+      write_csv(PA_area_daily_max,file)
+    })
+###############################################################################
 ### Create custom icon for markers on map ###
   aq_icon<-makeIcon(
     iconUrl = "https://www.pca.state.mn.us/sites/default/files/aqi-icon-airdata.png",
@@ -199,7 +236,7 @@ output$dailytable<-renderDataTable({
     
   }
 })
-
+###############################################################################  
 ### Create a vector of column names to be used in formatStyle() ###
 cols<-colnames(NY_area_daily_max[,7:250])
 ### Create summary table based on user input from drop down menu ###
@@ -218,7 +255,7 @@ output$dailytable2<-renderDataTable({
     
   }
 })
-
+###############################################################################  
 ### Create a vector of column names to be used in formatStyle() ###
 cols<-colnames(PA_area_daily_max[,7:250])
 ### Create summary table based on user input from drop down menu ###
@@ -237,9 +274,8 @@ output$dailytable3<-renderDataTable({
     
   }
 })
-
-
-}
+###############################################################################  
+} # Closes server function
 ##################################################################
 ### Run the application ###
 shinyApp(ui = ui, server = server)

@@ -1,5 +1,5 @@
 ### Script to create a shiny app for the Ozone Tracking Report ###
-### Author: Kevin Zolea; 9/2019 ###
+### Author: Kevin Zolea; 10/2019 ###
 ### Load in packages used to create everything in the app ###
 library(shiny)
 library(shinydashboard)
@@ -14,11 +14,9 @@ library(sf)
 library(DT)
 library(readr)
 library(tidyr)
+library(shinyWidgets)
+library(shinyBS)
 ##################################################################
-#wide_to_long<-NJ_area_daily_max%>%
-#gather(Date,AQI_value,7:252)%>%
- # dplyr::filter(!State == "NA")
-
 ### Read in Sites Data to plot sites on leaflet map ###
 sites<-read_xlsx("Site_Locations.xlsx",col_names = T)%>%
       dplyr::distinct()
@@ -54,17 +52,29 @@ ny_counties<-st_read(getwd(),"Counties")%>%
 ny_counties<-st_transform(ny_counties,crs="+init=epsg:4326")
 ### Read in NJ ozone area daily max spreadsheet ###
 NJ_area_daily_max<-read_xlsx("NJ Ozone 2019_KZ.xlsx",sheet = "DailyMax",skip = 3)%>%
+  dplyr::slice(1:18)%>%
   setNames(., c("AQS Code","Latitude","State","Site Name","Elev (m)","County",
                                     format(as.Date(as.numeric(names(.)[-1:-6]), 
                                      origin = '1899-12-30'), '%m/%d/%Y')))
-
 ### Make all date columns numeric ###
 NJ_area_daily_max[,7:252] <- sapply(NJ_area_daily_max[,7:252],as.numeric)
 
+### Make another dataframe that makes wide to long ###
+wide_to_long_NJ<-NJ_area_daily_max%>%
+gather(Date,AQI_value,7:252)%>%
+ dplyr::filter(!State == "NA")
+
 ### Read in NJ ozone area design values ###
-NJ_design<-read_xlsx("NJ Ozone 2019_KZ.xlsx",sheet = "8Hr Rpt",skip = 3)
+NJ_design<-read_xlsx("NJ Ozone 2019_KZ.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
+  dplyr::select(1:11)%>%
+  dplyr::slice(1:19)
+### Read in NJ ozone highest levels ###
+NJ_highest_levels<-read_xlsx("NJ Ozone 2019_KZ.xlsx",sheet = "NJ-8Hr",skip = 2)%>%
+  dplyr::select(5:16)%>%
+  dplyr::slice(1:19)
 ### Read in PA ozone daily max spreadsheet ###
 PA_area_daily_max<-read_xlsx("PA-Area Ozone 2019 8hr_KZ.xlsx",sheet = "DailyMax",skip = 3)%>%
+  dplyr::slice(1:24)%>%
   setNames(., c("AQS Code","Latitude","State","Site Name","Elev (m)","County",
                 format(as.Date(as.numeric(names(.)[-1:-6]), 
                                origin = '1899-12-30'), '%m/%d/%Y')))
@@ -73,6 +83,7 @@ PA_area_daily_max[,7:252] <- sapply(PA_area_daily_max[,7:252],as.numeric)
 
 ### Read in NY area daily max spreadsheet ###
 NY_area_daily_max<-read_xlsx("NY-Area Ozone 2019 8hr_KZ.xlsx",sheet = "DailyMax",skip = 3)%>%
+  dplyr::slice(1:27)%>%
   setNames(., c("AQS Code","Latitude","State","Site Name","Elev (m)","County",
                 format(as.Date(as.numeric(names(.)[-1:-6]), 
                                origin = '1899-12-30'), '%m/%d/%Y')))
@@ -121,6 +132,11 @@ body<- dashboardBody(
     tabItem("nj",
             selectInput("nj_select","Please Select Summary Table:",
                         choices = c("Daily Max","8 Hour Design Values","Highest Levels")),
+            awesomeCheckbox(
+              inputId = "nj_wide",
+              label = "Turn data from wide to long", 
+              value = FALSE
+            ),
             DT::dataTableOutput("dailytable")%>%withSpinner(type = 1,color = "green"),
             downloadButton('download_nj','Download Data')),
     
@@ -222,9 +238,10 @@ server <- function(input, output) {
   cols<-colnames(NJ_area_daily_max[,7:250])
 ### Create summary table based on user input from drop down menu ###
 output$dailytable<-renderDataTable({
-  if(input$nj_select == "Daily Max"){
+  if(input$nj_select == "Daily Max" & input$nj_wide == FALSE){
   dat<-DT::datatable(NJ_area_daily_max,filter = 'top',
-                  options = list(scrollX = TRUE,pageLength = 18))%>%
+                  options = list(scrollX = TRUE,pageLength = 18),caption = "Colors: >70 ppb = Yellow,
+                   >75 ppb = Orange, >84 ppb = Red")%>%
       formatStyle(cols,
       backgroundColor = styleEqual(c(71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87),
                                    c('#ffff00', '#ffff00','#ffff00','#ffff00',
@@ -235,6 +252,30 @@ output$dailytable<-renderDataTable({
   return(dat)
     
   }
+  
+  
+  else if(input$nj_select == "8 Hour Design Values"){
+    DT::datatable(NJ_design,filter = 'top',
+                  options = list(scrollX = TRUE,pageLength = 20))
+  }
+  
+  
+  
+  else if(input$nj_select == "Daily Max" & input$nj_wide == TRUE){
+    
+    DT::datatable(wide_to_long_NJ,filter = 'top',
+                       options = list(scrollX = TRUE,pageLength = 18))
+    
+    
+  }
+  
+  else if (input$nj_select == "Highest Levels"){
+    
+    DT::datatable(NJ_highest_levels,filter = 'top',
+                  options = list(scrollX = TRUE,pageLength = 19))
+  }
+
+
 })
 ###############################################################################  
 ### Create a vector of column names to be used in formatStyle() ###
@@ -273,6 +314,7 @@ output$dailytable3<-renderDataTable({
     return(dat3)
     
   }
+  
 })
 ###############################################################################  
 } # Closes server function

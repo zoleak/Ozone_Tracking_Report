@@ -241,7 +241,7 @@ output$dailytable<-renderDataTable({
   if(input$nj_select == "Daily Max" & input$nj_wide == FALSE){
   dat<-DT::datatable(NJ_area_daily_max,filter = 'top',
                   options = list(scrollX = TRUE,pageLength = 18),caption = "Colors: >70 ppb = Yellow,
-                   >75 ppb = Orange, >84 ppb = Red")%>%
+                   >75 ppb = Orange, >84 ppb = Red",class = 'cell-border stripe')%>%
       formatStyle(cols,
       backgroundColor = styleEqual(c(71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87),
                                    c('#ffff00', '#ffff00','#ffff00','#ffff00',
@@ -256,7 +256,8 @@ output$dailytable<-renderDataTable({
   
   else if(input$nj_select == "8 Hour Design Values"){
     DT::datatable(NJ_design,filter = 'top',
-                  options = list(scrollX = TRUE,pageLength = 20))
+                  options = list(scrollX = TRUE,pageLength = 20),
+                  class = 'cell-border stripe')
   }
   
   
@@ -264,7 +265,8 @@ output$dailytable<-renderDataTable({
   else if(input$nj_select == "Daily Max" & input$nj_wide == TRUE){
     
     DT::datatable(wide_to_long_NJ,filter = 'top',
-                       options = list(scrollX = TRUE,pageLength = 18))
+                       options = list(scrollX = TRUE,pageLength = 18),
+                      class = 'cell-border stripe')
     
     
   }
@@ -272,7 +274,8 @@ output$dailytable<-renderDataTable({
   else if (input$nj_select == "Highest Levels"){
     
     DT::datatable(NJ_highest_levels,filter = 'top',
-                  options = list(scrollX = TRUE,pageLength = 19))
+                  options = list(scrollX = TRUE,pageLength = 19),
+                  class = 'cell-border stripe')
   }
 
 
@@ -284,7 +287,8 @@ cols<-colnames(NY_area_daily_max[,7:250])
 output$dailytable2<-renderDataTable({
   if(input$ny_select == "Daily Max"){
     dat2<-DT::datatable(NY_area_daily_max,filter = 'top',
-                       options = list(scrollX = TRUE,pageLength = 28))%>%
+                       options = list(scrollX = TRUE,pageLength = 28),
+                       class = 'cell-border stripe')%>%
       formatStyle(cols,
                   backgroundColor = styleEqual(c(71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87),
                                                c('#ffff00', '#ffff00','#ffff00','#ffff00',
@@ -303,7 +307,8 @@ cols<-colnames(PA_area_daily_max[,7:250])
 output$dailytable3<-renderDataTable({
   if(input$pa_select == "Daily Max"){
     dat3<-DT::datatable(PA_area_daily_max,filter = 'top',
-                       options = list(scrollX = TRUE,pageLength = 24))%>%
+                       options = list(scrollX = TRUE,pageLength = 24),
+                       class = 'cell-border stripe')%>%
       formatStyle(cols,
                   backgroundColor = styleEqual(c(71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87),
                                                c('#ffff00', '#ffff00','#ffff00','#ffff00',

@@ -15,7 +15,6 @@ library(DT)
 library(readr)
 library(tidyr)
 library(shinyWidgets)
-library(shinyBS)
 ##################################################################
 ### Read in Sites Data to plot sites on leaflet map ###
 sites<-read_xlsx("Site_Locations.xlsx",col_names = T)%>%
@@ -110,6 +109,7 @@ sidebar<-dashboardSidebar(
     
   )
 )
+##################################################################
 ##################################################################
 ### Create body for app ###
 body<- dashboardBody(
@@ -240,8 +240,12 @@ server <- function(input, output) {
 output$dailytable<-renderDataTable({
   if(input$nj_select == "Daily Max" & input$nj_wide == FALSE){
   dat<-DT::datatable(NJ_area_daily_max,filter = 'top',
-                  options = list(scrollX = TRUE,pageLength = 18),caption = "Colors: >70 ppb = Yellow,
-                   >75 ppb = Orange, >84 ppb = Red",class = 'cell-border stripe')%>%
+                  options = list(scrollX = TRUE,pageLength = 18),
+                  caption = htmltools::tags$caption(
+                    style = 'caption-side: bottom; text-align: center;'
+                    ,htmltools::em('Data Sources: NJ data from Envista, 
+                                              Other states data from AirNow Tech')),
+                  class = 'cell-border stripe')%>%
       formatStyle(cols,
       backgroundColor = styleEqual(c(71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87),
                                    c('#ffff00', '#ffff00','#ffff00','#ffff00',
@@ -257,7 +261,11 @@ output$dailytable<-renderDataTable({
   else if(input$nj_select == "8 Hour Design Values"){
     DT::datatable(NJ_design,filter = 'top',
                   options = list(scrollX = TRUE,pageLength = 20),
-                  class = 'cell-border stripe')
+                  class = 'cell-border stripe',
+                  caption = htmltools::tags$caption(
+                    style = 'caption-side: bottom; text-align: center;'
+                    ,htmltools::em('Data Sources: NJ data from Envista, 
+                                              Other states data from AirNow Tech')))
   }
   
   
@@ -266,7 +274,11 @@ output$dailytable<-renderDataTable({
     
     DT::datatable(wide_to_long_NJ,filter = 'top',
                        options = list(scrollX = TRUE,pageLength = 18),
-                      class = 'cell-border stripe')
+                      class = 'cell-border stripe',
+                  caption = htmltools::tags$caption(
+                    style = 'caption-side: bottom; text-align: center;'
+                    ,htmltools::em('Data Sources: NJ data from Envista, 
+                                   Other states data from AirNow Tech')))
     
     
   }
@@ -275,7 +287,11 @@ output$dailytable<-renderDataTable({
     
     DT::datatable(NJ_highest_levels,filter = 'top',
                   options = list(scrollX = TRUE,pageLength = 19),
-                  class = 'cell-border stripe')
+                  class = 'cell-border stripe',
+                  caption = htmltools::tags$caption(
+                    style = 'caption-side: bottom; text-align: center;'
+                    ,htmltools::em('Data Sources: NJ data from Envista, 
+                                   Other states data from AirNow Tech')))
   }
 
 
@@ -288,7 +304,11 @@ output$dailytable2<-renderDataTable({
   if(input$ny_select == "Daily Max"){
     dat2<-DT::datatable(NY_area_daily_max,filter = 'top',
                        options = list(scrollX = TRUE,pageLength = 28),
-                       class = 'cell-border stripe')%>%
+                       class = 'cell-border stripe',
+                       caption = htmltools::tags$caption(
+                         style = 'caption-side: bottom; text-align: center;'
+                         ,htmltools::em('Data Sources: NJ data from Envista, 
+                                        Other states data from AirNow Tech')))%>%
       formatStyle(cols,
                   backgroundColor = styleEqual(c(71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87),
                                                c('#ffff00', '#ffff00','#ffff00','#ffff00',
@@ -308,7 +328,11 @@ output$dailytable3<-renderDataTable({
   if(input$pa_select == "Daily Max"){
     dat3<-DT::datatable(PA_area_daily_max,filter = 'top',
                        options = list(scrollX = TRUE,pageLength = 24),
-                       class = 'cell-border stripe')%>%
+                       class = 'cell-border stripe',
+                       caption = htmltools::tags$caption(
+                         style = 'caption-side: bottom; text-align: center;'
+                         ,htmltools::em('Data Sources: NJ data from Envista, 
+                                              Other states data from AirNow Tech')))%>%
       formatStyle(cols,
                   backgroundColor = styleEqual(c(71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87),
                                                c('#ffff00', '#ffff00','#ffff00','#ffff00',

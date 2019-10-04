@@ -61,7 +61,8 @@ NJ_area_daily_max[,7:252] <- sapply(NJ_area_daily_max[,7:252],as.numeric)
 ### Make another dataframe that makes wide to long ###
 wide_to_long_NJ<-NJ_area_daily_max%>%
 gather(Date,AQI_value,7:252)%>%
- dplyr::filter(!State == "NA")
+ dplyr::filter(!State == "NA")%>%
+ dplyr::mutate(Date = as.Date(Date,format = "%m/%d/%Y"))
 
 ### Read in NJ ozone area design values ###
 NJ_design<-read_xlsx("NJ Ozone 2019_KZ.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
@@ -69,8 +70,8 @@ NJ_design<-read_xlsx("NJ Ozone 2019_KZ.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
   dplyr::slice(1:19)
 ### Read in NJ ozone highest levels ###
 NJ_highest_levels<-read_xlsx("NJ Ozone 2019_KZ.xlsx",sheet = "NJ-8Hr",skip = 2)%>%
-  dplyr::select(5:16)%>%
-  dplyr::slice(1:19)
+  dplyr::select(5:16)#%>%
+  #dplyr::slice(1:19)
 ### Read in PA ozone daily max spreadsheet ###
 PA_area_daily_max<-read_xlsx("PA-Area Ozone 2019 8hr_KZ.xlsx",sheet = "DailyMax",skip = 3)%>%
   dplyr::slice(1:24)%>%
@@ -124,7 +125,6 @@ body<- dashboardBody(
             h2("Purpose of App:"),
             h3("This app can be used to understand the ozone trends for New Jersey and it's surrounding 
             states. Users can view different summary tables and track different ozone trends."),
-            #actionButton("preview","Click to see map of sites")
             br(),
             h2("Map of Sites:"),br(),
             leafletOutput("site_map")%>%withSpinner(type = 1,color = "green")
@@ -137,6 +137,7 @@ body<- dashboardBody(
               label = "Turn data from wide to long", 
               value = FALSE
             ),
+            textOutput("date_show"),
             DT::dataTableOutput("dailytable")%>%withSpinner(type = 1,color = "green"),
             downloadButton('download_nj','Download Data')),
     
@@ -161,7 +162,10 @@ ui<-dashboardPage(skin = "green",
 ##################################################################
 ### Define server for app ###
 server <- function(input, output) {
-
+### Make dataframe reactive ###
+  wide_long_nj_reac<-reactive({
+    wide_to_long_NJ
+  })
 ### Allow users to download data for NJ daily max ###
   output$download_nj<-downloadHandler(
     filename = function(){
@@ -196,9 +200,6 @@ server <- function(input, output) {
     iconAnchorX =30 , iconAnchorY = 30)
 ###############################################################################  
 ### Create map of sites in ozone tracking report ###
-  #observeEvent(input$preview,{
-    #showModal(modalDialog(
-     # title = "Map of sites",
   output$site_map<-renderLeaflet({
     leaflet(data = sites, options = leafletOptions(minZoom = 7))%>%
       addTiles()%>%
@@ -286,7 +287,7 @@ output$dailytable<-renderDataTable({
   else if (input$nj_select == "Highest Levels"){
     
     DT::datatable(NJ_highest_levels,filter = 'top',
-                  options = list(scrollX = TRUE,pageLength = 19),
+                  options = list(scrollX = TRUE,pageLength = 24),
                   class = 'cell-border stripe',
                   caption = htmltools::tags$caption(
                     style = 'caption-side: bottom; text-align: center;'
@@ -345,7 +346,18 @@ output$dailytable3<-renderDataTable({
   }
   
 })
-###############################################################################  
+##################################################################
+observe({
+  if(input$nj_select == "8 Hour Design Values"){
+  showModal(modalDialog(
+    title = "",
+    "Note:Design values are preliminary"
+  
+  ))}
+})
+##################################################################
+output$date_show<-renderText(max(wide_long_nj_reac()$Date,na.rm = T))
+
 } # Closes server function
 ##################################################################
 ### Run the application ###

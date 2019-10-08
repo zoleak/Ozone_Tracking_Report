@@ -3,6 +3,7 @@
 ### Load in packages used to create everything in the app ###
 library(shiny)
 library(shinydashboard)
+library(shinydashboardPlus)
 library(ggplot2)
 library(dplyr)
 library(plyr)
@@ -89,7 +90,14 @@ NY_area_daily_max<-read_xlsx("NY-Area Ozone 2019 8hr_KZ.xlsx",sheet = "DailyMax"
                                origin = '1899-12-30'), '%m/%d/%Y')))
 ### Make all date columns numeric ###
 NY_area_daily_max[,7:252] <- sapply(NY_area_daily_max[,7:252],as.numeric)
-
+### Read in NY area design values spreadsheet ###
+NY_design<-read_xlsx("NY-Area Ozone 2019 8hr_KZ.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
+  dplyr::select(1:11)%>%
+  dplyr::slice(1:30)
+### Read in NY area highest levels speadsheet ###
+NY_highest_levels<-read_xlsx("NY-Area Ozone 2019 8hr_KZ.xlsx",sheet = "NY-8Hr",skip = 2)%>%
+  dplyr::select(5:16)
+  
   
 ### Create header for app ###
 header<- dashboardHeader(title ="Ozone Tracking Report", titleWidth = 400,
@@ -97,7 +105,7 @@ header<- dashboardHeader(title ="Ozone Tracking Report", titleWidth = 400,
                                       notificationItem(
                                         text = "Learn more about Design Values",
                                         href = "https://www.epa.gov/air-trends/air-quality-design-values",
-                                        icon(""))))
+                                        icon("exclamation-triangle"))))
 ##################################################################
 ### Create sidebar for app ###
 sidebar<-dashboardSidebar(
@@ -130,16 +138,35 @@ body<- dashboardBody(
             leafletOutput("site_map")%>%withSpinner(type = 1,color = "green")
             ),
     tabItem("nj",
+            fluidRow(column(width = 6,
             selectInput("nj_select","Please Select Summary Table:",
-                        choices = c("Daily Max","8 Hour Design Values","Highest Levels")),
-            awesomeCheckbox(
-              inputId = "nj_wide",
-              label = "Turn data from wide to long", 
-              value = FALSE
-            ),
-            textOutput("date_show"),
+                        choices = c("Daily Max","8 Hour Design Values","Highest Levels"))),
+            column(width = 6,
+            conditionalPanel("input.nj_wide ==1 && input.nj_select == 'Daily Max' ",
+            boxPlus(
+              title = "Plotting Options:",
+              width = NULL,
+              icon = "",
+              #gradientColor = "grey", 
+              #boxToolSize = "xs", 
+              closable = TRUE,
+              conditionalPanel("input.nj_wide== 1",selectInput("site_name_select",
+                                                               "Choose Site:",choices = wide_to_long_NJ$`Site Name`,
+                                                               multiple = TRUE,selected = "Ancora State Hospital"
+              ),dateRangeInput("dates","Choose Date Range:",
+                               start = "2019-03-01",
+                               end = "2019-10-07"),
+              plotOutput("plot1")))))),
+            fluidRow(column(width = 6,
+            conditionalPanel("input.nj_select == 'Daily Max'",helpText("Click box below to get plotting options"),
+                awesomeCheckbox(inputId = "nj_wide",label = "Turn data from wide to long",
+                                value = F)),
+            infoBoxOutput("date_show"))),
+          #conditionalPanel("input.nj_wide== 1",selectInput("site_name_select",
+           #                                                "Choose site:",choices = wide_to_long_NJ$`Site Name`)),
+            fluidRow(
             DT::dataTableOutput("dailytable")%>%withSpinner(type = 1,color = "green"),
-            downloadButton('download_nj','Download Data')),
+            downloadButton('download_nj','Download Data'))),
     
     tabItem("ny",
             selectInput("ny_select","Please Select Summary Table:",
@@ -164,7 +191,10 @@ ui<-dashboardPage(skin = "green",
 server <- function(input, output) {
 ### Make dataframe reactive ###
   wide_long_nj_reac<-reactive({
-    wide_to_long_NJ
+    wide_to_long_NJ%>%
+      dplyr::filter(`Site Name` ==input$site_name_select,
+                    between(Date ,input$dates[1], input$dates[2]))
+
   })
 ### Allow users to download data for NJ daily max ###
   output$download_nj<-downloadHandler(
@@ -348,16 +378,40 @@ output$dailytable3<-renderDataTable({
 })
 ##################################################################
 observe({
-  if(input$nj_select == "8 Hour Design Values"){
+  if(input$nj_select == "8 Hour Design Values" || input$pa_select == "8 Hour Design Values"
+     || input$ny_select == "8 Hour Design Values"){
   showModal(modalDialog(
     title = "",
-    "Note:Design values are preliminary"
+    div("Note: Design values are preliminary",style = "font-weight: bold;text-algin: center;
+        font-size: 150%;")
   
   ))}
 })
 ##################################################################
-output$date_show<-renderText(max(wide_long_nj_reac()$Date,na.rm = T))
-
+### Create info box to show what data is current to ###
+output$date_show<-renderInfoBox({
+  infoBox(as.character(max(wide_long_nj_reac()$Date,na.rm = TRUE)),
+          color = "green",icon = icon("calendar"),title = "Current to:",width = 6)
+})
+##################################################################
+### Creates Time series plot for Daily Max data table ###
+output$plot1<-renderPlot({
+  req(input$site_name_select)
+  ggplot(data = wide_long_nj_reac(),aes(x=Date,y=AQI_value,
+                                        color = wide_long_nj_reac()$`Site Name`))+
+    geom_point()+
+    ggtitle(paste(input$site_name_select,"Daily Ozone AQI Values in 2019"))+
+    labs(y= "AQI Value")+
+      theme(plot.title=element_text(size=15, face="bold",vjust=0.5,hjust = 0.5),
+            panel.grid.major.x = element_blank(),
+            panel.grid.minor.x = element_blank(),
+            legend.position = "bottom",
+            legend.background = element_blank(),
+            legend.text=element_text(size=10, face="bold"),
+            legend.title = element_blank(),
+            plot.subtitle = element_text(size=15, face="bold",vjust=0.5,hjust = 0.1))
+    
+})
 } # Closes server function
 ##################################################################
 ### Run the application ###

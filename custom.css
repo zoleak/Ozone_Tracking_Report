@@ -1,0 +1,39 @@
+.main-header .logo {
+  
+font-family: Rockwell Extra Bold,Rockwell Bold,monospace; 
+
+}
+
+.box-title {font-weight: bold;
+  font-size:x-large;
+}
+
+
+ .logo_pic{
+    display: block;
+    margin-left:auto;
+    margin-right:auto;
+    width: auto;
+    height: 100%;
+    max-height: 20vh;
+    
+
+ }
+    
+.control-label{
+  font-weight: bold;
+  font-size: large;
+}
+
+.btn-primary{
+  color:white;
+  background-color:green;
+}
+
+.item{
+  color:green;
+  font-weight:bold;
+}
+
+
+

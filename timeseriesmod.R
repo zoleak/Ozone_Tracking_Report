@@ -26,7 +26,9 @@ timeseriesplotUI<-function(id,data){
                                          plotOutput(ns("plot1"))%>%withSpinner(type = 1,color = "green"),br(),
                                          chooseSliderSkin(skin = "Modern","green"),
                                          div(style = "width: 50%; margin: 0 auto;",
-                                             sliderInput(ns("alpha"),"Select Shade of Lines:",min = 0,max = 0.65,value=0.5))))))),
+                                             sliderInput(ns("alpha"),"Select Shade of Lines:",min = 0,max = 0.65,value=0.5))))),
+                    conditionalPanel("input.nj_select == '8 Hour Design Values'",ns=ns,
+                                     selectInput(ns("test"),"TEST:",choices = c("yes","no"))))),
     fluidRow(column(width = 6,
                     conditionalPanel("input.nj_select == 'Daily Max'",ns=ns,helpText("Click box below to get plotting options"),
                                      awesomeCheckbox(ns("nj_wide"),label = "Turn data from wide to long",
@@ -138,6 +140,13 @@ timeseriesplot <- function(input, output, session, data, data_wide, highest_leve
                                      Other states data from AirNow Tech')))
     }
     })
+  ##################################################################
+  ##################################################################
+  ### Create info box to show what data is current to ###
+  output$date_show<-renderInfoBox({
+    infoBox(as.character(max(data1()$Date,na.rm = TRUE)),
+            color = "green",icon = icon("calendar"),title = "Current to:",width = 6)
+  })
   ##################################################################
   ### Allow users to download data ###
   output$data_download <- downloadHandler(

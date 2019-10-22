@@ -28,7 +28,15 @@ timeseriesplotUI<-function(id,data){
                                          div(style = "width: 50%; margin: 0 auto;",
                                              sliderInput(ns("alpha"),"Select Shade of Lines:",min = 0,max = 0.65,value=0.5))))),
                     conditionalPanel("input.nj_select == '8 Hour Design Values'",ns=ns,
-                                     selectInput(ns("test"),"TEST:",choices = c("yes","no"))))),
+                                     selectInput(ns("site_design"),"Please Select Site:",choices = data$`Site Name`,
+                                                 multiple = TRUE)),
+                    conditionalPanel("input.nj_select == '8 Hour Design Values'",ns=ns,
+                                     boxPlus(
+                                       title = "Plotting Options:",
+                                       width = NULL,
+                                       icon = "",
+                                       collapsible = TRUE,
+                                     plotOutput(ns("plot2"))%>%withSpinner(type = 1,color = "green"))))),
     fluidRow(column(width = 6,
                     conditionalPanel("input.nj_select == 'Daily Max'",ns=ns,helpText("Click box below to get plotting options"),
                                      awesomeCheckbox(ns("nj_wide"),label = "Turn data from wide to long",
@@ -51,6 +59,13 @@ timeseriesplot <- function(input, output, session, data, data_wide, highest_leve
       dplyr::filter(`Site Name` ==input$site_name_select,
                     between(Date ,input$dates[1], input$dates[2]))
     
+  })
+  ##################################################################
+  ### Make reactive dataframe for design values plot ###
+  data2<-reactive({
+    req(input$site_design)
+    data_design%>%
+      dplyr::filter(Site == input$site_design)
   })
   
   ##################################################################
@@ -84,6 +99,36 @@ timeseriesplot <- function(input, output, session, data, data_wide, highest_leve
                             guide = guide_legend(override.aes = list(color = c("yellow", "orange"))))
   })
   
+  ##################################################################
+  ### Create plot for Design Values tab ###
+  output$plot2 <- renderPlot({
+    req(input$site_name_select)
+    req(input$dates)
+    ggplot(data = data2(),aes(x=Date,y=AQI_value,
+                              color = data2()$`Site Name`))+
+      geom_line(size = 3.5)+
+      geom_hline(aes(yintercept = 70,linetype="70 ppb NAAQS"),
+                 color="yellow",size = 2.2,alpha=input$alpha)+
+      geom_hline(aes(yintercept = 75,linetype="75 ppb NAAQS"),
+                 color="orange",size=2.2,alpha=input$alpha)+
+      ggtitle("Daily Ozone AQI Values in 2019")+
+      labs(y= "AQI Value")+
+      theme(plot.title=element_text(size=15, face="bold",vjust=0.5,hjust = 0.5),
+            panel.grid.major.x = element_blank(),
+            panel.grid.minor.x = element_blank(),
+            legend.position = "bottom",
+            legend.background = element_blank(),
+            legend.text=element_text(size=10, face="bold"),
+            legend.title = element_blank(),
+            plot.subtitle = element_text(size=15, face="bold",vjust=0.5,hjust = 0.1),
+            axis.title = element_text(face = "bold"),
+            axis.text.x = element_text(face = "bold",size = 10),
+            axis.text.y = element_text(face = "bold",size = 10))+
+      scale_x_date(breaks = "1 month",date_labels = "%B")+
+      scale_y_continuous(expand = c(0,0),limits = c(0, 90))+
+      scale_linetype_manual(name = "", values = c(1, 1), 
+                            guide = guide_legend(override.aes = list(color = c("yellow", "orange"))))
+  })
   ##################################################################
   ### Create a vector of column names to be used in formatStyle() ###
   #cols<-colnames(NJ_area_daily_max[,7:250])
@@ -154,7 +199,15 @@ timeseriesplot <- function(input, output, session, data, data_wide, highest_leve
       paste("data-", Sys.Date(), ".csv", sep="")
     },
     content = function(file) {
-      write.csv(data, file) # add parentheses to data arg if reactive
+      if(input$nj_select == "Daily Max"){
+      write.csv(data, file)}
+      else if (input$nj_select == "8 Hour Design Values"){
+        write.csv(data_design,file)
+      }
+      else if (input$nj_select == "Highest Levels"){
+        write.csv(highest_level,file)
+        
+      }
     }
   )
   ##################################################################

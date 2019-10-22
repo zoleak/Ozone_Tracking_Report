@@ -72,7 +72,18 @@ wide_to_long_NJ<-NJ_area_daily_max%>%
 ### Read in NJ ozone area design values ###
 NJ_design<-read_xlsx("NJ Ozone 2019_KZ.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
   dplyr::select(1:11)%>%
-  dplyr::slice(1:19)
+  dplyr::slice(1:19)%>%
+  dplyr::rename("State"="...2","Site"="...3",
+                "Design Value 2018"="...10",
+                "Design Value 2019"="...11",
+                "2019_sum"='2019')
+
+NJ_design_plot<-NJ_design%>%
+  dplyr::rename("2017"="Design Values",
+                "2018"="Design Value 2018",
+                "2019"="Design Value 2019")%>%
+  dplyr::select(Site,'2017','2018','2019')%>%
+  gather(Year,Design_Value,2:4)
 ### Read in NJ ozone highest levels ###
 NJ_highest_levels<-read_xlsx("NJ Ozone 2019_KZ.xlsx",sheet = "NJ-8Hr",skip = 2)%>%
   dplyr::select(5:16)#%>%

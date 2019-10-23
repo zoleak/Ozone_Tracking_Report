@@ -17,19 +17,28 @@ timeseriesplotUI<-function(id,data){
                                          icon = "",
                                          collapsible = TRUE,
                                          conditionalPanel("input.nj_wide== 1",ns=ns,
-                                                          selectInput(ns("site_name_select"),
+                                                          selectizeInput(ns("site_name_select"),
                                                                                           "Choose Site:",choices = data$`Site Name`,
-                                                                                          multiple = TRUE,selected = "Ancora State Hospital")),
+                                                                                          multiple = TRUE,options = list(
+                                                                                            placeholder = "Please select a site below"
+                                                                                          ))),
                                                           dateRangeInput(ns("dates"),"Choose Date Range:",
                                                           start = "2019-03-01",
-                                                          end = "2019-10-07"),
+                                                          end = "2019-10-31"),
                                          plotOutput(ns("plot1"))%>%withSpinner(type = 1,color = "green"),br(),
                                          chooseSliderSkin(skin = "Modern","green"),
                                          div(style = "width: 50%; margin: 0 auto;",
                                              sliderInput(ns("alpha"),"Select Shade of Lines:",min = 0,max = 0.65,value=0.5))))),
                     conditionalPanel("input.nj_select == '8 Hour Design Values'",ns=ns,
-                                     selectInput(ns("site_design"),"Please Select Site:",choices = data$`Site Name`,
-                                                 multiple = TRUE)),
+                                     selectizeInput(ns("site_design"),"Please Select Site:",choices = data$`Site Name`,
+                                                 multiple = TRUE,options = list(placeholder = "Please select a site below")),
+                                     awesomeCheckboxGroup(
+                                       inputId = "design_stats",
+                                       label = "", 
+                                       choices = c("Minimum Site", "Median Site", "Maximum Site"),
+                                       inline = TRUE,
+                                       status = "success"
+                                     )),
                     conditionalPanel("input.nj_select == '8 Hour Design Values'",ns=ns,
                                      boxPlus(
                                        title = "Plotting Options:",
@@ -48,7 +57,7 @@ timeseriesplotUI<-function(id,data){
   )
 }
 
-timeseriesplot <- function(input, output, session, data, data_wide, highest_level, data_design)
+timeseriesplot <- function(input, output, session, data, data_wide, highest_level, data_design,data_design_wide)
 {
   ##################################################################
   ### Make dataframe reactive ###
@@ -64,7 +73,7 @@ timeseriesplot <- function(input, output, session, data, data_wide, highest_leve
   ### Make reactive dataframe for design values plot ###
   data2<-reactive({
     req(input$site_design)
-    data_design%>%
+    data_design_wide%>%
       dplyr::filter(Site == input$site_design)
   })
   
@@ -102,17 +111,18 @@ timeseriesplot <- function(input, output, session, data, data_wide, highest_leve
   ##################################################################
   ### Create plot for Design Values tab ###
   output$plot2 <- renderPlot({
-    req(input$site_name_select)
+    req(input$site_design)
     req(input$dates)
-    ggplot(data = data2(),aes(x=Date,y=AQI_value,
-                              color = data2()$`Site Name`))+
-      geom_line(size = 3.5)+
+    ggplot(data = data2(),aes(x=Year,y=Design_Value,group=1,
+                              color = data2()$Site))+
+      geom_point(size = 2)+
       geom_hline(aes(yintercept = 70,linetype="70 ppb NAAQS"),
                  color="yellow",size = 2.2,alpha=input$alpha)+
       geom_hline(aes(yintercept = 75,linetype="75 ppb NAAQS"),
                  color="orange",size=2.2,alpha=input$alpha)+
-      ggtitle("Daily Ozone AQI Values in 2019")+
-      labs(y= "AQI Value")+
+      ggtitle("8-Hour Air Quality Design-Values\n3 Year Average of 4th Highest Daily 8-Hour Maximum")+
+      labs(y= "AQI Value",
+           subtitle = "")+
       theme(plot.title=element_text(size=15, face="bold",vjust=0.5,hjust = 0.5),
             panel.grid.major.x = element_blank(),
             panel.grid.minor.x = element_blank(),
@@ -124,7 +134,7 @@ timeseriesplot <- function(input, output, session, data, data_wide, highest_leve
             axis.title = element_text(face = "bold"),
             axis.text.x = element_text(face = "bold",size = 10),
             axis.text.y = element_text(face = "bold",size = 10))+
-      scale_x_date(breaks = "1 month",date_labels = "%B")+
+      #scale_x_date(breaks = "1 month",date_labels = "%B")+
       scale_y_continuous(expand = c(0,0),limits = c(0, 90))+
       scale_linetype_manual(name = "", values = c(1, 1), 
                             guide = guide_legend(override.aes = list(color = c("yellow", "orange"))))

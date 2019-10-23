@@ -29,3 +29,17 @@ font-family: Rockwell Extra Bold,Rockwell Bold,monospace;
   color:white;
   background-color:green;
 }
+
+.modal-body{
+  text-align: center;
+}
+
+.shiny-tab-nj.active{
+  color:green;
+}
+
+
+
+
+
+

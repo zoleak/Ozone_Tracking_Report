@@ -31,22 +31,16 @@ timeseriesplotUI<-function(id,data){
                                              sliderInput(ns("alpha"),"Select Shade of Lines:",min = 0,max = 0.65,value=0.5))))),
                     conditionalPanel("input.nj_select == '8 Hour Design Values'",ns=ns,
                                      selectizeInput(ns("site_design"),"Please Select Site:",choices = data$`Site Name`,
-                                                 multiple = TRUE,options = list(placeholder = "Please select a site below")),
-                                     awesomeCheckboxGroup(
-                                       inputId = "design_stats",
-                                       label = "", 
-                                       choices = c("Minimum Site", "Median Site", "Maximum Site"),
-                                       inline = TRUE,
-                                       status = "success"
-                                     )),
+                                                 multiple = TRUE,options = list(placeholder = "Please select a site below"))),
                     conditionalPanel("input.nj_select == '8 Hour Design Values'",ns=ns,
-                                     boxPlus(
+                                     jqui_draggable(
+                                       boxPlus(
                                        title = "Plotting Options:",
                                        width = NULL,
                                        icon = "",
                                        collapsible = TRUE,
-                                     plotOutput(ns("plot2"))%>%withSpinner(type = 1,color = "green"))))),
-    fluidRow(column(width = 6,
+                                     plotOutput(ns("plot2"))%>%withSpinner(type = 1,color = "green")))))),
+    fluidRow(column(width = 8,
                     conditionalPanel("input.nj_select == 'Daily Max'",ns=ns,helpText("Click box below to get plotting options"),
                                      awesomeCheckbox(ns("nj_wide"),label = "Turn data from wide to long",
                                                      value = F)),
@@ -65,7 +59,7 @@ timeseriesplot <- function(input, output, session, data, data_wide, highest_leve
   data1<-reactive({
     req(input$site_name_select)
     data%>%
-      dplyr::filter(`Site Name` ==input$site_name_select,
+      dplyr::filter(`Site Name` %in% input$site_name_select,
                     between(Date ,input$dates[1], input$dates[2]))
     
   })
@@ -74,7 +68,7 @@ timeseriesplot <- function(input, output, session, data, data_wide, highest_leve
   data2<-reactive({
     req(input$site_design)
     data_design_wide%>%
-      dplyr::filter(Site == input$site_design)
+      dplyr::filter(Site %in% input$site_design)
   })
   
   ##################################################################
@@ -102,10 +96,12 @@ timeseriesplot <- function(input, output, session, data, data_wide, highest_leve
             axis.title = element_text(face = "bold"),
             axis.text.x = element_text(face = "bold",size = 10),
             axis.text.y = element_text(face = "bold",size = 10))+
-      scale_x_date(breaks = "1 month",date_labels = "%B")+
+      #scale_x_date(breaks = "1 month",date_labels = "%B")+
+      scale_x_date(limits = c(input$dates[1], input$dates[2]))+
       scale_y_continuous(expand = c(0,0),limits = c(0, 90))+
       scale_linetype_manual(name = "", values = c(1, 1), 
                             guide = guide_legend(override.aes = list(color = c("yellow", "orange"))))
+    
   })
   
   ##################################################################
@@ -113,7 +109,7 @@ timeseriesplot <- function(input, output, session, data, data_wide, highest_leve
   output$plot2 <- renderPlot({
     req(input$site_design)
     req(input$dates)
-    ggplot(data = data2(),aes(x=Year,y=Design_Value,group=1,
+    ggplot(data = data2(),aes(x=Year,y=Design_Value,
                               color = data2()$Site))+
       geom_point(size = 2)+
       geom_hline(aes(yintercept = 70,linetype="70 ppb NAAQS"),
@@ -138,6 +134,8 @@ timeseriesplot <- function(input, output, session, data, data_wide, highest_leve
       scale_y_continuous(expand = c(0,0),limits = c(0, 90))+
       scale_linetype_manual(name = "", values = c(1, 1), 
                             guide = guide_legend(override.aes = list(color = c("yellow", "orange"))))
+    
+   
   })
   ##################################################################
   ### Create a vector of column names to be used in formatStyle() ###
@@ -157,8 +155,17 @@ timeseriesplot <- function(input, output, session, data, data_wide, highest_leve
 
     }
     else if(input$nj_select == "8 Hour Design Values"){
+      
+      jsc <- '
+      function(settings, json) {
+      $("td:contains(\'AQS AMP450\')").attr("colspan", "3").css("text-align", "center");
+      $("tbody > tr:first-child > td:empty").remove();
+      }'
+      
+      
+      
       DT::datatable(data_design,filter = 'top',
-                    options = list(scrollX = TRUE,pageLength = 20),
+                    options = list(scrollX = TRUE,pageLength = 20,dom="t",ordering=F,initComplete=JS(jsc)),
                     class = 'cell-border stripe',
                     caption = htmltools::tags$caption(
                       style = 'caption-side: bottom; text-align: center;'
@@ -199,7 +206,7 @@ timeseriesplot <- function(input, output, session, data, data_wide, highest_leve
   ##################################################################
   ### Create info box to show what data is current to ###
   output$date_show<-renderInfoBox({
-    infoBox(as.character(max(data1()$Date,na.rm = TRUE)),
+    infoBox(as.character(max(data$Date,na.rm = TRUE)),
             color = "green",icon = icon("calendar"),title = "Current to:",width = 6)
   })
   ##################################################################

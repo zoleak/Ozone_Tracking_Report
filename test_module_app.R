@@ -77,7 +77,7 @@ NJ_design<-read_xlsx("NJ Ozone 2019_KZ.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
                 "Design Value 2017"="Design Values",
                 "Design Value 2018"="...10",
                 "Design Value 2019"="...11",
-                "2019_sum"='2019')
+                "AQS ID"='2019')
 
 NJ_design_plot<-NJ_design%>%
   dplyr::rename("2017"="Design Value 2017",
@@ -164,7 +164,7 @@ body<- dashboardBody(
   
   tabItems(
     tabItem("home",
-            h1("Welcome to the Ozone Tracking Report App!"),
+            h1("Welcome to the Ozone Tracking Report App"),
             h2("Purpose of App:"),
             h3("This app can be used to understand the ozone trends for New Jersey and it's surrounding 
                states. Users can view different summary tables and track different ozone trends."),
@@ -241,14 +241,14 @@ server <- function(input, output) {
   cols3<-colnames(NY_design[,9:11])
   ### Call module from timeseriesplot script ###
   callModule(timeseriesplot,id="ny_options",data=wide_to_long_NY,data_wide=NY_area_daily_max,
-             highest_level=NY_highest_levels,data_design=NY_design)
+             highest_level=NY_highest_levels,data_design=NY_design,data_design_wide = NJ_design_plot)
   ###############################################################################  
   ### Create a vector of column names to be used in formatStyle() ###
   cols<-colnames(PA_area_daily_max[,7:250])
   cols4<-colnames(PA_design[,9:11])
   ### Call module from timeseriesplot script ###
   callModule(timeseriesplot,id="pa_options",data = wide_to_long_PA,data_wide=PA_area_daily_max,
-             highest_level=PA_highest_levels,data_design=PA_design)
+             highest_level=PA_highest_levels,data_design=PA_design,data_design_wide = NJ_design_plot)
   ##################################################################
   ### Call module from timeseriesplot script ###
   callModule(timeseriesplot, id = "nj_options",data=wide_to_long_NJ,data_wide=NJ_area_daily_max,

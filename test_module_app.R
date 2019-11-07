@@ -159,8 +159,8 @@ body<- dashboardBody(
   
   #Include the custom styling
   tags$head(
-    #includeCSS("/Users/kevinzolea/Desktop/Temp_Impairments/www/styles.css")),
-    includeCSS("C:/Users/kzolea/Desktop/Ozone_Tracking_Report/www/custom.css")),
+    includeCSS("/Users/kevinzolea/Desktop/Ozone_Tracking_Report/www/custom.css")),
+    #includeCSS("C:/Users/kzolea/Desktop/Ozone_Tracking_Report/www/custom.css")),
   
   tabItems(
     tabItem("home",

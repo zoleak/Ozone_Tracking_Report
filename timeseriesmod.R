@@ -28,7 +28,9 @@ timeseriesplotUI<-function(id,data){
                                          plotOutput(ns("plot1"))%>%withSpinner(type = 1,color = "green"),br(),
                                          chooseSliderSkin(skin = "Modern","green"),
                                          div(style = "width: 50%; margin: 0 auto;",
-                                             sliderInput(ns("alpha"),"Select Shade of Lines:",min = 0,max = 0.65,value=0.5))))),
+                                             sliderInput(ns("alpha"),"Select Shade of Lines:",min = 0,max = 0.65,value=0.5)),
+                                         panel("Number of 
+                                               days over exceedance:",textOutput(ns("text1")))))),
                     conditionalPanel("input.nj_select == '8 Hour Design Values'",ns=ns,
                                      selectizeInput(ns("site_design"),"Please Select Site:",choices = data$`Site Name`,
                                                  multiple = TRUE,options = list(placeholder = "Please select a site below"))),
@@ -70,7 +72,16 @@ timeseriesplot <- function(input, output, session, data, data_wide, highest_leve
     data_design_wide%>%
       dplyr::filter(Site %in% input$site_design)
   })
-  
+  ##################################################################
+  textshow<-reactive({
+    req(input$site_name_select)
+    data%>%
+      dplyr::filter(`Site Name` %in% input$site_name_select,
+                    AQI_value >70)%>%
+      dplyr::group_by(`Site Name`)%>%
+      dplyr::summarise(greater=n())
+    
+  })
   ##################################################################
   ### Creates Time series plot for Daily Max data table ###
   output$plot1 <- renderPlot({
@@ -238,8 +249,20 @@ timeseriesplot <- function(input, output, session, data, data_wide, highest_leve
         
       ))}
   })
-  
-}
+  ##################################################################  
+### Shows text output of number of days exceeding standard for each station based on user input ### 
+  output$text1<-renderText({
+    if(input$site_name_select %in% textshow()$`Site Name`){
+    print(paste(input$site_name_select,"=",textshow()$greater))}
+    
+    else if(textshow()$`Site Name` == "") {
+      #print(paste(input$site_name_select,"= 0"))}
+      print("")}
+    
+    
+  })
+  ##################################################################  
+} # closes app
 
 
 

@@ -17,6 +17,7 @@ library(readr)
 library(tidyr)
 library(shinyWidgets)
 library(shinyjqui)
+library(htmltools)
 ##################################################################
 source("downloadButton.R")# Script that creates a module for download buttons throughout the app
 source("timeseriesmod.R") # Script that creates tables,charts, etc for different tabPanels of app 
@@ -106,7 +107,20 @@ wide_to_long_NY<-NY_area_daily_max%>%
 ### Read in NY area design values spreadsheet ###
 NY_design<-read_xlsx("NY-Area Ozone 2019 8hr_KZ.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
   dplyr::select(1:11)%>%
-  dplyr::slice(1:30)
+  dplyr::slice(1:30)%>%
+  dplyr::rename("State"="...2","Site"="...3",
+                "Design Value 2017"="Design Values",
+                "Design Value 2018"="...10",
+                "Design Value 2019"="...11",
+                "AQS ID"='2019')
+
+NY_design_plot<-NY_design%>%
+  dplyr::rename("2017"="Design Value 2017",
+                "2018"="Design Value 2018",
+                "2019"="Design Value 2019")%>%
+  dplyr::select(Site,'2017','2018','2019')%>%
+  gather(Year,Design_Value,2:4)%>%
+  dplyr::mutate(Design_Value=as.numeric(Design_Value))
 ### Read in NY area highest levels speadsheet ###
 NY_highest_levels<-read_xlsx("NY-Area Ozone 2019 8hr_KZ.xlsx",sheet = "NY-8Hr",skip = 2)%>%
   dplyr::select(5:16)
@@ -127,7 +141,20 @@ wide_to_long_PA<-PA_area_daily_max%>%
 ### Read in PA design values spreadsheet ###
 PA_design<-read_xlsx("PA-Area Ozone 2019 8hr_KZ.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
   dplyr::select(1:11)%>%
-  dplyr::slice(1:25)
+  dplyr::slice(1:25)%>%
+  dplyr::rename("State"="...2","Site"="...3",
+                "Design Value 2017"="Design Values",
+                "Design Value 2018"="...10",
+                "Design Value 2019"="...11",
+                "AQS ID"='2019')
+
+PA_design_plot<-PA_design%>%
+  dplyr::rename("2017"="Design Value 2017",
+                "2018"="Design Value 2018",
+                "2019"="Design Value 2019")%>%
+  dplyr::select(Site,'2017','2018','2019')%>%
+  gather(Year,Design_Value,2:4)%>%
+  dplyr::mutate(Design_Value=as.numeric(Design_Value))
 ### Read in PA Highest Level spreadsheet ###
 PA_highest_levels<-read_xlsx("PA-Area Ozone 2019 8hr_KZ.xlsx",sheet = "PA-8Hr",skip = 2)%>%
   dplyr::select(5:16)
@@ -241,18 +268,21 @@ server <- function(input, output) {
   cols3<-colnames(NY_design[,9:11])
   ### Call module from timeseriesplot script ###
   callModule(timeseriesplot,id="ny_options",data=wide_to_long_NY,data_wide=NY_area_daily_max,
-             highest_level=NY_highest_levels,data_design=NY_design,data_design_wide = NJ_design_plot)
+             highest_level=NY_highest_levels,data_design=NY_design,
+             data_design_wide = NY_design_plot,source_table="AirNow")
   ###############################################################################  
   ### Create a vector of column names to be used in formatStyle() ###
   cols<-colnames(PA_area_daily_max[,7:250])
   cols4<-colnames(PA_design[,9:11])
   ### Call module from timeseriesplot script ###
   callModule(timeseriesplot,id="pa_options",data = wide_to_long_PA,data_wide=PA_area_daily_max,
-             highest_level=PA_highest_levels,data_design=PA_design,data_design_wide = NJ_design_plot)
+             highest_level=PA_highest_levels,data_design=PA_design,
+             data_design_wide = PA_design_plot,source_table="AirNow")
   ##################################################################
   ### Call module from timeseriesplot script ###
   callModule(timeseriesplot, id = "nj_options",data=wide_to_long_NJ,data_wide=NJ_area_daily_max,
-             highest_level =NJ_highest_levels,data_design=NJ_design,data_design_wide = NJ_design_plot)
+             highest_level =NJ_highest_levels,data_design=NJ_design,
+             data_design_wide = NJ_design_plot,source_table="Envista")
   
   } # Closes server function
 ##################################################################

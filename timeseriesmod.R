@@ -53,7 +53,7 @@ timeseriesplotUI<-function(id,data){
   )
 }
 
-timeseriesplot <- function(input, output, session, data, data_wide, highest_level, data_design,data_design_wide)
+timeseriesplot <- function(input, output, session, data, data_wide, highest_level, data_design,data_design_wide,source_table)
 {
   ##################################################################
   ### Make dataframe reactive ###
@@ -167,28 +167,58 @@ timeseriesplot <- function(input, output, session, data, data_wide, highest_leve
     }
     else if(input$nj_select == "8 Hour Design Values"){
       
-      jsc <- '
-      function(settings, json) {
-      $("td:contains(\'AQS AMP450\')").attr("colspan", "3").css("text-align", "center");
-      $("tbody > tr:first-child > td:empty").remove();
-      }'
+      # a custom table container
+      sketch <- withTags(
+        table(
+          class = "display",
+          thead(
+            tr(
+              th(colspan = 3, "2019", style = "border-right: solid 2px;"),
+              th(colspan = 5, "4th Max ppb", style = "border-right: solid 2px;"),
+              th(colspan = 3, "Design Values")
+            ),
+            tr(
+              th(colspan = 3, "", style = "border-right: solid 2px;"),
+              th(colspan = 4, "AQS AMP450 (4-10-19)", style = "border-right: solid 2px;"),
+              th(source_table, style = "border-right: solid 2px;"),
+              th(colspan = 3, "")
+            ),
+            tr(
+              th("AQS ID"),
+              th("State"),
+              th("Site", style = "border-right: solid 2px;"),
+              th("2015"),
+              th("2016"),
+              th("2017"),
+              th("2018", style = "border-right: solid 2px;"),
+              th("2019", style = "border-right: solid 2px;"),
+              th("2017"),
+              th("2018"),
+              th("2019")
+            )
+          )
+        )
+      )
       
+      dat <- cbind(data_design[3:nrow(data_design),1:8], data_design[2:(nrow(data_design)-1), 9:11])
       
-      
-      DT::datatable(data_design,filter = 'top',
-                    options = list(scrollX = TRUE,pageLength = 20,dom="t",ordering=F,initComplete=JS(jsc)),
+      DT::datatable(dat,filter = 'top',rownames = FALSE,
+                    options = list(scrollX = TRUE,pageLength = 20),
                     class = 'cell-border stripe',
+                    container = sketch,
                     caption = htmltools::tags$caption(
                       style = 'caption-side: bottom; text-align: center;'
                       ,htmltools::em('Data Sources: NJ data from Envista, 
                                      Other states data from AirNow Tech')))%>%
+        formatStyle(c(3,7,8), `border-right` = "solid 2px")%>%
         formatStyle(cols,
                     backgroundColor = styleEqual(c(71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87),
-                                                 c('#ffff00', '#ffff00','#ffff00','#ffff00',
+                                                c('#ffff00', '#ffff00','#ffff00','#ffff00',
                                                    '#ffff00','#ff7e00','#ff7e00','#ff7e00',
                                                    '#ff7e00','#ff7e00','#ff7e00','#ff7e00','#ff7e00',
                                                    '#ff7e00','#ff0000','#ff0000','#ff0000')))
     }
+
     else if(input$nj_select == "Daily Max" & input$nj_wide == TRUE){
       
       DT::datatable(data,filter = 'top',

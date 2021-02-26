@@ -30,10 +30,48 @@ font-family: Rockwell Extra Bold,Rockwell Bold,monospace;
   background-color:green;
 }
 
-.item{
+.modal-body{
+  text-align: center;
+}
+
+.btn-default{
+color:white;
+  background-color:green;
+}
+
+.shiny-tab-nj.active{
   color:green;
-  font-weight:bold;
+}
+
+th{
+  text-align:center;
+}
+.panel-body{
+  background-color:#F5F5F5;
+}
+
+.modal-title{
+ font-weight: bold;
+  font-size: large;
+color:green;
+
 }
 
 
+.info-box{
+width:400px;
+}
 
+#drop_tut{
+color:white;
+background-color:green;
+}
+
+#drop_help{
+color:white;
+background-color:green;
+}
+
+.pulseWarningIns{
+color:green;
+}

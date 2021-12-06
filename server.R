@@ -29,7 +29,7 @@ server <- function(input, output,session) {
                    and click on the icons to find out the sites name. Click on the county shape and find out what county the site is in.
                    The NJ, NY, & PA area ozone tabs all do the same thing, however, they are just broken up into sections 
                    based on the areas of the sites. The State Tally tab is a running tally of the number of days the 70 ppb
-                   ozone NAAQS was exceeded in NJ's non-attainmnet areas in 2020.",
+                   ozone NAAQS was exceeded in NJ's non-attainmnet areas in 2021.",
                    h2("Contact Information"),
                    "This app was developed by the", a(href="https://www.nj.gov/dep/airmon/","Bureau of Air Monitoring.",
                                                       target="_blank"),"If you have any questions or suggestions please send them over to 
@@ -139,7 +139,7 @@ server <- function(input, output,session) {
   ### Call module from timeseriesplot script ###
   callModule(timeseriesplot,id="ny_options",data=wide_to_long_NY,data_wide=NY_area_daily_max_ex,
              highest_level=NY_highest_levels,data_design=NY_design,data_design_excel=NY_design_ex,
-             data_design_wide = NY_design_plot,source_table="AirNow")
+             data_design_wide = NY_design_plot)
   ###############################################################################  
   ### Create a vector of column names to be used in formatStyle() ###
   cols<-colnames(PA_area_daily_max[,7:250])
@@ -147,12 +147,12 @@ server <- function(input, output,session) {
   ### Call module from timeseriesplot script ###
   callModule(timeseriesplot,id="pa_options",data = wide_to_long_PA,data_wide=PA_area_daily_max_ex,
              highest_level=PA_highest_levels,data_design=PA_design,data_design_excel=PA_design_ex,
-             data_design_wide = PA_design_plot,source_table="AirNow")
+             data_design_wide = PA_design_plot)
   ##################################################################
   ### Call module from timeseriesplot script ###
   callModule(timeseriesplot, id = "nj_options",data=wide_to_long_NJ,data_wide=NJ_area_daily_max_ex,
              highest_level =NJ_highest_levels,data_design=NJ_design,data_design_excel=NJ_design_ex,
-             data_design_wide = NJ_design_plot,source_table="Envista")
+             data_design_wide = NJ_design_plot)
 ##################################################################  
 ### Info box for State Tally Tab ###
     output$tally_date<-renderInfoBox({
@@ -185,8 +185,8 @@ server <- function(input, output,session) {
   all_states_daily<-left_join(all_states_daily,all_states_daily3,by="State")
   
   #add maryland, since it has zero exceedances and doesn't show up
-  all_states_daily<-all_states_daily%>%
-    add_row(State="MD")
+  #all_states_daily<-all_states_daily%>%
+   # add_row(State="MD")
   
   output$all_states<-DT::renderDataTable({
     DT::datatable(all_states_daily,rownames = FALSE,options = list(dom = 't',

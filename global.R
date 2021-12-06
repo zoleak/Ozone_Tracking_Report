@@ -32,7 +32,7 @@ ny_counties<-st_read(getwd(),"Counties")%>%
 ### Change projection to work with leaflet map ###
 ny_counties<-st_transform(ny_counties,crs="+init=epsg:4326")
 ### Read in NJ ozone area daily max spreadsheet ###
-NJ_area_daily_max<-read_xlsx("NJ Ozone 2020_KZ.xlsx",sheet = "DailyMax",skip = 3)%>%
+NJ_area_daily_max<-read_xlsx("NJ Ozone 2021_KZ.xlsx",sheet = "DailyMax",skip = 3)%>%
   dplyr::slice(1:18)%>%
   setNames(., c("AQS Code","Latitude","State","Site Name","Elev (m)","County",
                 format(as.Date(as.numeric(names(.)[-1:-6]), 
@@ -59,14 +59,14 @@ wide_to_long_NJ<-NJ_area_daily_max%>%
   dplyr::select(-Latitude)
 
 ### Read in NJ ozone area design values ###
-NJ_design<-read_xlsx("NJ Ozone 2020_KZ.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
+NJ_design<-read_xlsx("NJ Ozone 2021_KZ.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
   dplyr::select(1:11)%>%
   dplyr::slice(1:19)%>%
   dplyr::rename("State"="...2","Site"="...3",
-                "Design Value 2018"="Design Values",
-                "Design Value 2019"="...10",
-                "Design Value 2020"="...11",
-                "AQS ID"='2020',
+                "Design Value 2019"="Design Values",
+                "Design Value 2020"="...10",
+                "Design Value 2021"="...11",
+                "AQS ID"='2021',
                 "4th Max (ppb)"="...5",
                 "4th Max (ppb)"="...6",
                 "4th Max (ppb)"="...7",
@@ -76,10 +76,10 @@ NJ_design_ex<-read_xlsx("NJ_design_ex.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
   dplyr::select(1:11)%>%
   dplyr::slice(1:19)%>%
   dplyr::rename("State"="...2","Site"="...3",
-                "Design Value 2018"="Design Values",
-                "Design Value 2019"="...10",
-                "Design Value 2020"="...11",
-                "AQS ID"='2020',
+                "Design Value 2019"="Design Values",
+                "Design Value 2020"="...10",
+                "Design Value 2021"="...11",
+                "AQS ID"='2021',
                 "4th Max (ppb)"="...5",
                 "4th Max (ppb)"="...6",
                 "4th Max (ppb)"="...7",
@@ -102,14 +102,14 @@ NJ_design_ex<-read_xlsx("NJ_design_ex.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
 #  gather(Year,Design_Value,2:4)%>%
 #  dplyr::mutate(Design_Value=as.numeric(Design_Value))
 ### Read in NJ ozone highest levels ###
-NJ_highest_levels<-read_xlsx("NJ Ozone 2020_KZ.xlsx",sheet = "NJ-8Hr",skip = 2)%>%
+NJ_highest_levels<-read_xlsx("NJ Ozone 2021_KZ.xlsx",sheet = "NJ-8Hr",skip = 2)%>%
   dplyr::select(5:16)%>%
   dplyr::rename("# of days > 70"="> 70","# of days > 75"="> 75",
                 "# of days > 84"="> 84")%>%
   mutate_all(funs(replace_na(.,0)))
 #dplyr::slice(1:19)
 ### Read in NY area daily max spreadsheet ###
-NY_area_daily_max<-read_xlsx("NY-Area Ozone 2020 8hr_KZ.xlsx",sheet = "DailyMax",skip = 3)%>%
+NY_area_daily_max<-read_xlsx("NY-Area Ozone 2021 8hr_KZ.xlsx",sheet = "DailyMax",skip = 3)%>%
   dplyr::slice(1:27)%>%
   setNames(., c("AQS Code","Latitude","State","Site Name","Elev (m)","County",
                format(as.Date(as.numeric(names(.)[-1:-6]), 
@@ -136,14 +136,14 @@ wide_to_long_NY<-NY_area_daily_max%>%
   dplyr::mutate(Date = as.Date(Date,format = "%m/%d/%Y"))%>%
   dplyr::select(-Latitude)
 ### Read in NY area design values spreadsheet ###
-NY_design<-read_xlsx("NY-Area Ozone 2020 8hr_KZ.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
+NY_design<-read_xlsx("NY-Area Ozone 2021 8hr_KZ.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
   dplyr::select(1:11)%>%
   dplyr::slice(1:30)%>%
   dplyr::rename("State"="...2","Site"="...3",
-                "Design Value 2018"="Design Values",
-                "Design Value 2019"="...10",
-                "Design Value 2020"="...11",
-                "AQS ID"='2020',
+                "Design Value 2019"="Design Values",
+                "Design Value 2020"="...10",
+                "Design Value 2021"="...11",
+                "AQS ID"='2021',
                 "4th Max (ppb)"="...5",
                 "4th Max (ppb)"="...6",
                 "4th Max (ppb)"="...7",
@@ -155,10 +155,10 @@ NY_design_ex<-read_xlsx("NY_design_ex.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
   dplyr::select(1:11)%>%
   dplyr::slice(1:30)%>%
   dplyr::rename("State"="...2","Site"="...3",
-                "Design Value 2018"="Design Values",
-                "Design Value 2019"="...10",
-                "Design Value 2020"="...11",
-                "AQS ID"='2020',
+                "Design Value 2019"="Design Values",
+                "Design Value 2020"="...10",
+                "Design Value 2021"="...11",
+                "AQS ID"='2021',
                 "4th Max (ppb)"="...5",
                 "4th Max (ppb)"="...6",
                 "4th Max (ppb)"="...7",
@@ -179,14 +179,14 @@ NY_design_ex<-read_xlsx("NY_design_ex.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
 #  gather(Year,Design_Value,2:4)%>%
 #  dplyr::mutate(Design_Value=as.numeric(Design_Value))
 ### Read in NY area highest levels speadsheet ###
-NY_highest_levels<-read_xlsx("NY-Area Ozone 2020 8hr_KZ.xlsx",sheet = "NY-8Hr",skip = 2)%>%
+NY_highest_levels<-read_xlsx("NY-Area Ozone 2021 8hr_KZ.xlsx",sheet = "NY-8Hr",skip = 2)%>%
   dplyr::select(5:16)%>%
   dplyr::rename("# of days > 70"="> 70","# of days > 75"="> 75",
                 "# of days > 84"="> 84")%>%
   mutate_all(funs(replace_na(.,0)))
 
 ### Read in PA ozone daily max spreadsheet ###
-PA_area_daily_max<-read_xlsx("PA-Area Ozone 2020 8hr_KZ.xlsx",sheet = "DailyMax",skip = 3)%>%
+PA_area_daily_max<-read_xlsx("PA-Area Ozone 2021 8hr_KZ.xlsx",sheet = "DailyMax",skip = 3)%>%
   dplyr::slice(1:24)%>%
   setNames(., c("AQS Code","Latitude","State","Site Name","Elev (m)","County",
                 format(as.Date(as.numeric(names(.)[-1:-6]), 
@@ -214,14 +214,14 @@ wide_to_long_PA<-PA_area_daily_max%>%
   dplyr::mutate(Date = as.Date(Date,format = "%m/%d/%Y"))%>%
   dplyr::select(-Latitude)
 ### Read in PA design values spreadsheet ###
-PA_design<-read_xlsx("PA-Area Ozone 2020 8hr_KZ.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
+PA_design<-read_xlsx("PA-Area Ozone 2021 8hr_KZ.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
   dplyr::select(1:11)%>%
   dplyr::slice(1:25)%>%
   dplyr::rename("State"="...2","Site"="...3",
-                "Design Value 2018"="Design Values",
-                "Design Value 2019"="...10",
-                "Design Value 2020"="...11",
-                "AQS ID"='2020',
+                "Design Value 2019"="Design Values",
+                "Design Value 2020"="...10",
+                "Design Value 2021"="...11",
+                "AQS ID"='2021',
                 "4th Max (ppb)"="...5",
                 "4th Max (ppb)"="...6",
                 "4th Max (ppb)"="...7",
@@ -232,10 +232,10 @@ PA_design_ex<-read_xlsx("PA_design_ex.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
   dplyr::select(1:11)%>%
   dplyr::slice(1:25)%>%
   dplyr::rename("State"="...2","Site"="...3",
-                "Design Value 2018"="Design Values",
-                "Design Value 2019"="...10",
-                "Design Value 2020"="...11",
-                "AQS ID"='2020',
+                "Design Value 2019"="Design Values",
+                "Design Value 2020"="...10",
+                "Design Value 2021"="...11",
+                "AQS ID"='2021',
                 "4th Max (ppb)"="...5",
                 "4th Max (ppb)"="...6",
                 "4th Max (ppb)"="...7",
@@ -255,7 +255,7 @@ PA_design_ex<-read_xlsx("PA_design_ex.xlsx",sheet = "8Hr Rpt",skip = 3)%>%
 #  gather(Year,Design_Value,2:4)%>%
 #  dplyr::mutate(Design_Value=as.numeric(Design_Value))
 ### Read in PA Highest Level spreadsheet ###
-PA_highest_levels<-read_xlsx("PA-Area Ozone 2020 8hr_KZ.xlsx",sheet = "PA-8Hr",skip = 2)%>%
+PA_highest_levels<-read_xlsx("PA-Area Ozone 2021 8hr_KZ.xlsx",sheet = "PA-8Hr",skip = 2)%>%
   dplyr::select(5:16)%>%
   dplyr::rename("# of days > 70"="> 70","# of days > 75"="> 75",
                 "# of days > 84"="> 84")%>%

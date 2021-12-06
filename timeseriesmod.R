@@ -27,8 +27,8 @@ timeseriesplotUI<-function(id,data){
                                                           use_bs_tooltip(),                     
                                                           bs_embed_tooltip(
                                                           dateRangeInput(ns("dates"),"Choose Date Range:",
-                                                          start = "2020-03-01",
-                                                          end = "2020-10-31"),title = "Pick a date range to show on the plot/table below",
+                                                          start = "2021-03-01",
+                                                          end = "2021-10-31"),title = "Pick a date range to show on the plot/table below",
                                                           placement = "top"),
                                          use_bs_tooltip(),                     
                                          bs_embed_tooltip(
@@ -61,7 +61,8 @@ timeseriesplotUI<-function(id,data){
                                                      value = F)),
                     use_bs_tooltip(),                     
                     bs_embed_tooltip(
-                    infoBoxOutput(ns("date_show")),title = "This is the current date that the data was updated"))),
+                    infoBoxOutput(ns("date_show")),title = "This is the current date that the data was updated"),
+                    conditionalPanel("input.nj_select == '8 Hour Design Values (ppb)'",ns=ns,h1("Current year values are preliminary")))),
     fluidRow(
       img(src='test_legend.png',align="right",height="5%", width="20%"),
       DT::dataTableOutput(ns("dailytable"))%>%withSpinner(type = 1,color = "green"),
@@ -71,7 +72,7 @@ timeseriesplotUI<-function(id,data){
       title = "Click this button to download an excel spreadsheet of the data")))
 }
 
-timeseriesplot <- function(input, output, session, data, data_wide,data_design_excel ,highest_level, data_design,data_design_wide,source_table)
+timeseriesplot <- function(input, output, session, data, data_wide,data_design_excel ,highest_level, data_design,data_design_wide)
 {
     ##################################################################
   ### Make dataframe reactive ###
@@ -115,7 +116,7 @@ timeseriesplot <- function(input, output, session, data, data_wide,data_design_e
                  color="orange",size=2.2,alpha=input$alpha)+
       geom_hline(aes(yintercept = 84,linetype="84 ppb NAAQS"),
                  color="red",size=2.2,alpha=input$alpha)+
-      ggtitle("Daily Maximum 8-Hr Ozone Concentration (ppb) in 2020")+
+      ggtitle("Daily Maximum 8-Hr Ozone Concentration (ppb) in 2021")+
       labs(y= "Parts Per Billion (ppb)")+
       theme(plot.title=element_text(size=15, face="bold",vjust=0.5,hjust = 0.5),
             panel.grid.major.x = element_blank(),
@@ -205,28 +206,28 @@ timeseriesplot <- function(input, output, session, data, data_wide,data_design_e
           class = "display",
           thead(
             tr(
-              th(colspan = 3, "2020", style = "border-right: solid 2px;"),
+              th(colspan = 3, "2021", style = "border-right: solid 2px;"),
               th(colspan = 5, "4th Max ppb", style = "border-right: solid 2px;"),
               th(colspan = 3, "Design Values")
             ),
-            tr(
-              th(colspan = 3, "", style = "border-right: solid 2px;"),
-              th(colspan = 4, "AQS AMP450", style = "border-right: solid 2px;"),
-              th(source_table, style = "border-right: solid 2px;"),
-              th(colspan = 3, "Preliminary")
-            ),
+            #tr(
+             # th(colspan = 3, "", style = "border-right: solid 2px;")
+              #th(colspan = 4, "AQS AMP450", style = "border-right: solid 2px;"),
+              #th(source_table, style = "border-right: solid 2px;")
+              #th(colspan = 3, "Preliminary")
+            #),
             tr(
               th("AQS ID"),
               th("State"),
               th("Site", style = "border-right: solid 2px;"),
-              th("2016"),
               th("2017"),
               th("2018"),
-              th("2019", style = "border-right: solid 2px;"),
-              th("2020", style = "border-right: solid 2px;"),
-              th("2018"),
               th("2019"),
-              th("2020")
+              th("2020", style = "border-right: solid 2px;"),
+              th("2021", style = "border-right: solid 2px;"),
+              th("2019"),
+              th("2020"),
+              th("2021")
             )
           )
         )
@@ -234,6 +235,7 @@ timeseriesplot <- function(input, output, session, data, data_wide,data_design_e
       
       dat <- cbind(data_design[3:nrow(data_design),1:8], data_design[2:(nrow(data_design)-1), 9:11])
       
+      h1("Current year values are preliminary")
       
       DT::datatable(dat,rownames = FALSE,filter = "none",
                     options = list(scrollX = TRUE,pageLength = 30),
@@ -303,7 +305,7 @@ timeseriesplot <- function(input, output, session, data, data_wide,data_design_e
   output$data_download <- downloadHandler(
     filename = function() {
       if(input$nj_select == "8 Hour Design Values (ppb)"){
-        "design_values_2020.xlsx"
+        "design_values_2021.xlsx"
         
       }
       else{
@@ -317,7 +319,7 @@ timeseriesplot <- function(input, output, session, data, data_wide,data_design_e
         
         addWorksheet(
           wb = my_workbook,
-          sheetName = "2020 Design Values"
+          sheetName = "Sheet 1"
         )
 
         writeData(

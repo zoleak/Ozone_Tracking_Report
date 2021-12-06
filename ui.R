@@ -109,7 +109,7 @@ body<- dashboardBody(
             timeseriesplotUI("pa_options",data = wide_to_long_PA)
     ),
     tabItem("tally",h3("Running Tally of the Number of Days the 70 ppb Ozone NAAQS was Exceeded in NJ's 
-                       Non-Attainment Areas in 2020",style = "text-align: center;font-weight: bold;font-size: xx-large;
+                       Non-Attainment Areas in 2021",style = "text-align: center;font-weight: bold;font-size: xx-large;
                        text-decoration: underline;"),br(),
             column(width=6,
                    use_bs_tooltip(),                     

@@ -13,9 +13,9 @@ timeseriesplotUI<-function(id,data){
              column(width = 6,
                     conditionalPanel("input.nj_wide == 1 && input.nj_select == 'Daily 8-hr Max (ppb)' ",ns=ns,
                                      jqui_draggable(
-                                       boxPlus(
+                                       fluidRow(boxPlus(
                                          title = "Plotting Options:",
-                                         width = NULL,
+                                         width = 12,
                                          icon = "",
                                          collapsible = TRUE,
                                         conditionalPanel("input.nj_wide== 1",ns=ns,
@@ -27,14 +27,15 @@ timeseriesplotUI<-function(id,data){
                                                           use_bs_tooltip(),                     
                                                           bs_embed_tooltip(
                                                           dateRangeInput(ns("dates"),"Choose Date Range:",
-                                                          start = "2021-03-01",
-                                                          end = "2021-10-31"),title = "Pick a date range to show on the plot/table below",
+                                                          start = "2022-03-01",
+                                                          end = NULL),title = "Pick a date range to show on the plot/table below",
                                                           placement = "top"),
                                          use_bs_tooltip(),                     
                                          bs_embed_tooltip(
-                                         plotOutput(ns("plot1")),
-                                         title = "You can save the plot by right clicking and pressing save as")%>%withSpinner(type = 1,color = "green"),br(),
-                                         chooseSliderSkin(skin = "Modern","green"),
+                                         plotOutput(ns("plot1"),width = "125%"),title = ("You can save the plot by right clicking and pressing save as"))%>%withSpinner(type = 1,color = "green"),br(),
+                                        awesomeCheckbox(ns("plot_change"),label = "Switch to line plot",
+                                                        value = F),
+                                        chooseSliderSkin(skin = "Modern","green"),
                                          div(style = "width: 50%; margin: 0 auto;",
                                              use_bs_tooltip(),
                                              bs_embed_tooltip(
@@ -54,7 +55,7 @@ timeseriesplotUI<-function(id,data){
                     #                   icon = "",
                     #                   collapsible = TRUE,
                     #                   plotOutput(ns("plot2"))%>%withSpinner(type = 1,color = "green"))))
-                    )),
+                    ))),
     fluidRow(column(width = 8,
                     conditionalPanel("input.nj_select == 'Daily 8-hr Max (ppb)'",ns=ns,helpText("Click box below to get plotting options"),
                                      awesomeCheckbox(ns("nj_wide"),label = "Turn data from wide to long",
@@ -105,18 +106,19 @@ timeseriesplot <- function(input, output, session, data, data_wide,data_design_e
 ##################################################################
   ### Creates Time series plot for Daily 8-hr Max (ppb) data table ###
   output$plot1 <- renderPlot({
+    if(input$plot_change == TRUE) {
     req(input$site_name_select)
     req(input$dates)
     ggplot(data = data1(),aes(x=Date,y=`Concentration (PPB)`,
                                           color = data1()$`Site Name`))+
-      geom_point(size = 3.5)+
+      geom_line(size = 2)+
       geom_hline(aes(yintercept = 70,linetype="70 ppb NAAQS"),
                  color="yellow",size = 2.2,alpha=input$alpha)+
       geom_hline(aes(yintercept = 75,linetype="75 ppb NAAQS"),
                  color="orange",size=2.2,alpha=input$alpha)+
       geom_hline(aes(yintercept = 84,linetype="84 ppb NAAQS"),
                  color="red",size=2.2,alpha=input$alpha)+
-      ggtitle("Daily Maximum 8-Hr Ozone Concentration (ppb) in 2021")+
+      ggtitle("Daily Maximum 8-Hr Ozone Concentration (ppb) in 2022")+
       labs(y= "Parts Per Billion (ppb)")+
       theme(plot.title=element_text(size=15, face="bold",vjust=0.5,hjust = 0.5),
             panel.grid.major.x = element_blank(),
@@ -135,7 +137,39 @@ timeseriesplot <- function(input, output, session, data, data_wide,data_design_e
       scale_linetype_manual(name = "", values = c(1, 1,1), 
                             guide = guide_legend(override.aes = list(color = c("yellow", "orange","red"))))
     
-  })
+  }#}
+  else{
+    req(input$site_name_select)
+    req(input$dates)
+    ggplot(data = data1(),aes(x=Date,y=`Concentration (PPB)`,
+                              color = data1()$`Site Name`))+
+      geom_point(size = 3.5)+
+      geom_hline(aes(yintercept = 70,linetype="70 ppb NAAQS"),
+                 color="yellow",size = 2.2,alpha=input$alpha)+
+      geom_hline(aes(yintercept = 75,linetype="75 ppb NAAQS"),
+                 color="orange",size=2.2,alpha=input$alpha)+
+      geom_hline(aes(yintercept = 84,linetype="84 ppb NAAQS"),
+                 color="red",size=2.2,alpha=input$alpha)+
+      ggtitle("Daily Maximum 8-Hr Ozone Concentration (ppb) in 2022")+
+      labs(y= "Parts Per Billion (ppb)")+
+      theme(plot.title=element_text(size=15, face="bold",vjust=0.5,hjust = 0.5),
+            panel.grid.major.x = element_blank(),
+            panel.grid.minor.x = element_blank(),
+            legend.position = "bottom",
+            legend.background = element_blank(),
+            legend.text=element_text(size=10, face="bold"),
+            legend.title = element_blank(),
+            plot.subtitle = element_text(size=15, face="bold",vjust=0.5,hjust = 0.1),
+            axis.title = element_text(face = "bold"),
+            axis.text.x = element_text(face = "bold",size = 10),
+            axis.text.y = element_text(face = "bold",size = 10))+
+      #scale_x_date(breaks = "1 month",date_labels = "%B")+
+      scale_x_date(limits = c(input$dates[1], input$dates[2]))+
+      scale_y_continuous(expand = c(0,0),limits = c(0, 95))+
+      scale_linetype_manual(name = "", values = c(1, 1,1), 
+                            guide = guide_legend(override.aes = list(color = c("yellow", "orange","red"))))
+  }}
+  )
   
 #################################################################
   ### Create plot for Design Values tab ###
@@ -178,7 +212,7 @@ timeseriesplot <- function(input, output, session, data, data_wide,data_design_e
   output$dailytable<-DT::renderDataTable({
     if(input$nj_select == "Daily 8-hr Max (ppb)" & input$nj_wide == FALSE){
       DT::datatable(data_wide,extensions = "FixedColumns",filter = "none",
-                         options = list(scrollX = TRUE,scrollY = '500px',pageLength = 26,autoWidth = T,
+                         options = list(scrollX = TRUE,scrollY = '500px',pageLength = 30,autoWidth = T,
                                         columnDefs = list(list(width = '100px',targets=c(5))),
                                         fixedColumns = list(leftColumns = 4)),
                          caption = htmltools::tags$caption(
@@ -206,7 +240,7 @@ timeseriesplot <- function(input, output, session, data, data_wide,data_design_e
           class = "display",
           thead(
             tr(
-              th(colspan = 3, "2021", style = "border-right: solid 2px;"),
+              th(colspan = 3, "2022", style = "border-right: solid 2px;"),
               th(colspan = 5, "4th Max ppb", style = "border-right: solid 2px;"),
               th(colspan = 3, "Design Values")
             ),
@@ -220,14 +254,14 @@ timeseriesplot <- function(input, output, session, data, data_wide,data_design_e
               th("AQS ID"),
               th("State"),
               th("Site", style = "border-right: solid 2px;"),
-              th("2017"),
               th("2018"),
               th("2019"),
-              th("2020", style = "border-right: solid 2px;"),
-              th("2021", style = "border-right: solid 2px;"),
-              th("2019"),
               th("2020"),
-              th("2021")
+              th("2021", style = "border-right: solid 2px;"),
+              th("2022", style = "border-right: solid 2px;"),
+              th("2020"),
+              th("2021"),
+              th("2022")
             )
           )
         )

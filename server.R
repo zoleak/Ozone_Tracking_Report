@@ -29,7 +29,7 @@ server <- function(input, output,session) {
                    and click on the icons to find out the sites name. Click on the county shape and find out what county the site is in.
                    The NJ, NY, & PA area ozone tabs all do the same thing, however, they are just broken up into sections 
                    based on the areas of the sites. The State Tally tab is a running tally of the number of days the 70 ppb
-                   ozone NAAQS was exceeded in NJ's non-attainmnet areas in 2021.",
+                   ozone NAAQS was exceeded in NJ's non-attainmnet areas in 2022.",
                    h2("Contact Information"),
                    "This app was developed by the", a(href="https://www.nj.gov/dep/airmon/","Bureau of Air Monitoring.",
                                                       target="_blank"),"If you have any questions or suggestions please send them over to 
@@ -100,8 +100,8 @@ server <- function(input, output,session) {
     leaflet(data = sites, options = leafletOptions(minZoom = 7))%>%
       addTiles()%>%
       addResetMapButton()%>%
-      addTiles(group = "OSM (default)") %>%
-      addProviderTiles(providers$OpenStreetMap.BlackAndWhite, group = "Grey")%>%
+      #addTiles(group = "OSM (default)") %>%
+     # addProviderTiles(providers$OpenStreetMap.BlackAndWhite)%>%
       addProviderTiles(providers$Esri.WorldImagery, group = "Satellite")%>%
       #setView(lng = -74.4 ,lat =40, zoom = 8)%>%
       addMarkers(~Longitude,~Latitude, popup = ~paste("<h4> Site ID:</h4>",`AQS-ID`,
@@ -129,7 +129,8 @@ server <- function(input, output,session) {
                                                       weight = 2,bringToFront = TRUE))%>%
       
       addLayersControl(
-        baseGroups = c("OSM (default)", "Grey", "Satellite"),
+        #baseGroups = c("OSM (default)","Satellite"),
+        baseGroups = ("Satellite"),
         options = layersControlOptions(collapsed = FALSE))})#))})}
   ##################################################################
   ###############################################################################  
